@@ -21,6 +21,10 @@
           <el-icon><School /></el-icon>
           <span>班级管理</span>
         </el-menu-item>
+        <el-menu-item index="/admin/student-manage">
+          <el-icon><User /></el-icon>
+          <span>学生管理</span>
+        </el-menu-item>
         <el-menu-item index="/admin/video-manage">
           <el-icon><VideoCamera /></el-icon>
           <span>视频管理</span>
@@ -65,7 +69,7 @@
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Trophy, DataBoard, School, VideoCamera, ArrowDown } from '@element-plus/icons-vue'
+import { Trophy, DataBoard, School, VideoCamera, User, ArrowDown } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -79,6 +83,7 @@ const currentPageTitle = computed(() => {
   const titleMap: Record<string, string> = {
     '/admin/dashboard': '数据看板',
     '/admin/class-manage': '班级管理',
+    '/admin/student-manage': '学生管理',
     '/admin/video-manage': '视频管理'
   }
   return titleMap[route.path] || '首页'

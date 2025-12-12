@@ -4,7 +4,10 @@
       <template #header>
         <div class="card-header">
           <span>视频管理与智能分析</span>
-          <el-button type="primary" @click="handleBatchAnalyze">批量分析</el-button>
+          <div>
+            <el-button type="success" @click="uploadVisible = true">上传视频</el-button>
+            <el-button type="primary" @click="handleBatchAnalyze">批量分析</el-button>
+          </div>
         </div>
       </template>
 
@@ -108,12 +111,58 @@
       <el-divider>综合评价</el-divider>
       <el-alert :title="analysisResult.summary" type="info" :closable="false" />
     </el-dialog>
+
+    <!-- 视频上传对话框 -->
+    <el-dialog v-model="uploadVisible" title="上传视频文件" width="600px">
+      <el-form :model="uploadForm" label-width="100px">
+        <el-form-item label="班级">
+          <el-select v-model="uploadForm.classId" placeholder="请选择班级" style="width: 100%">
+            <el-option v-for="item in classList" :key="item.classId" :label="item.className" :value="item.classId" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="学生">
+          <el-select v-model="uploadForm.studentId" placeholder="请选择学生" style="width: 100%">
+            <el-option v-for="item in studentList" :key="item.studentId" :label="item.name" :value="item.studentId" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="考试项目">
+          <el-input v-model="uploadForm.examProject" placeholder="例如：800米跑、立定跳远等" />
+        </el-form-item>
+        <el-form-item label="视频文件">
+          <el-upload
+            class="upload-demo"
+            drag
+            :auto-upload="false"
+            :file-list="uploadFileList"
+            :on-change="handleFileChange"
+            :limit="10"
+            accept="video/*"
+            multiple
+          >
+            <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+            <div class="el-upload__text">将视频文件拖到此处，或<em>点击上传</em></div>
+            <template #tip>
+              <div class="el-upload__tip">
+                支持 mp4, avi, mov 等视频格式，单个文件不超过 500MB
+              </div>
+            </template>
+          </el-upload>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="uploadVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleSubmitUpload" :loading="uploading">
+          确认上传
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, nextTick, watch } from 'vue'
 import { ElMessage } from 'element-plus'
+import { UploadFilled } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
 import { adminApi } from '@/api'
 
@@ -126,6 +175,17 @@ const currentVideo = ref<any>({})
 const analysisResult = ref<any>({})
 const keyframeChart = ref<HTMLElement>()
 const issueChart = ref<HTMLElement>()
+
+// 上传相关
+const uploadVisible = ref(false)
+const uploading = ref(false)
+const uploadFileList = ref<any[]>([])
+const studentList = ref<any[]>([])
+const uploadForm = ref({
+  classId: '',
+  studentId: '',
+  examProject: ''
+})
 
 const queryForm = ref({
   classId: '',
@@ -256,6 +316,63 @@ const initCharts = () => {
     })
   }
 }
+
+// 上传相关方法
+const handleFileChange = (file: any, files: any[]) => {
+  uploadFileList.value = files
+}
+
+const loadStudentsByClass = async (classId: string) => {
+  if (!classId) {
+    studentList.value = []
+    return
+  }
+  try {
+    const res = await adminApi.getClassStudents(classId)
+    studentList.value = res.data || []
+  } catch (error) {
+    ElMessage.error('获取学生列表失败')
+    studentList.value = []
+  }
+}
+
+const handleSubmitUpload = async () => {
+  if (!uploadForm.value.classId) {
+    ElMessage.warning('请选择班级')
+    return
+  }
+  if (uploadFileList.value.length === 0) {
+    ElMessage.warning('请选择要上传的视频文件')
+    return
+  }
+
+  uploading.value = true
+  try {
+    const formData = new FormData()
+    formData.append('classId', uploadForm.value.classId)
+    formData.append('examProject', uploadForm.value.examProject)
+
+    uploadFileList.value.forEach(file => {
+      formData.append('files', file.raw)
+    })
+
+    await adminApi.uploadVideos(formData)
+    ElMessage.success('视频上传成功')
+    uploadVisible.value = false
+    uploadForm.value = { classId: '', studentId: '', examProject: '' }
+    uploadFileList.value = []
+    loadVideoList()
+  } catch (error) {
+    ElMessage.error('视频上传失败')
+  } finally {
+    uploading.value = false
+  }
+}
+
+// 监听班级变化，加载学生列表
+watch(() => uploadForm.value.classId, (newClassId) => {
+  loadStudentsByClass(newClassId)
+})
 
 onMounted(() => {
   loadVideoList()

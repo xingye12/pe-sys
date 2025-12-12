@@ -31,6 +31,15 @@ export const adminApi = {
   // 班级管理
   getClassList: () => request.get('/admin/classes'),
   getClassDetail: (classId: string) => request.get(`/admin/classes/${classId}`),
+  getClassStudents: (classId: string) => request.get(`/admin/classes/${classId}/students`),
+
+  // 班级增删改
+  createClass: (data: any) => request.post('/admin/classes', data),
+  updateClass: (classId: string, data: any) => request.put(`/admin/classes/${classId}`, data),
+  deleteClass: (classId: string) => request.delete(`/admin/classes/${classId}`),
+
+  // 教师管理
+  getTeacherList: () => request.get('/admin/teachers'),
   
   // 任务发布
   publishTask: (data: any) => request.post('/admin/tasks', data),
@@ -44,7 +53,14 @@ export const adminApi = {
   
   // 数据看板
   getDashboardData: () => request.get('/admin/dashboard'),
-  getClassStatistics: (classId: string) => request.get(`/admin/statistics/class/${classId}`)
+  getClassStatistics: (classId: string) => request.get(`/admin/statistics/class/${classId}`),
+
+  // 学生管理
+  getStudentList: (params?: any) => request.get('/admin/students', { params }),
+  createStudent: (data: any) => request.post('/admin/students', data),
+  updateStudent: (studentId: string, data: any) => request.put(`/admin/students/${studentId}`, data),
+  deleteStudent: (studentId: string) => request.delete(`/admin/students/${studentId}`),
+  batchCreateStudents: (students: any[]) => request.post('/admin/students/batch', students)
 }
 
 // 教师接口

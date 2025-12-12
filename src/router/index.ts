@@ -27,6 +27,11 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/admin/ClassManage.vue')
       },
       {
+        path: 'student-manage',
+        name: 'AdminStudentManage',
+        component: () => import('@/views/admin/StudentManagement.vue')
+      },
+      {
         path: 'video-manage',
         name: 'VideoManage',
         component: () => import('@/views/admin/VideoManage.vue')
@@ -45,7 +50,7 @@ const routes: RouteRecordRaw[] = [
       },
       {
         path: 'students',
-        name: 'StudentManage',
+        name: 'TeacherStudentManage',
         component: () => import('@/views/teacher/StudentManage.vue')
       }
     ]
